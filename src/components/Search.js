@@ -1,10 +1,11 @@
 import React from 'react';
+import {InputGroup, FormControl} from 'react-bootstrap';
 
 // ---------------| event handler is passed here as a prop
-const Search = ({ onSearch }) => (
+const Search = ({ value, onSearch }) => (
     <div>
-        <label htmlFor="searchInput">Search: </label>
-        <input id="searchInput" type="text"
+       <input className="" id="searchInput" type="text"
+            value={value}
             onChange={onSearch}
         />
     </div>
