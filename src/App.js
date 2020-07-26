@@ -1,45 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { courses } from './models/Courses';
+import React, { useState, useEffect, useReducer } from 'react';
+//import { courses, courses_data } from './models/Courses';
 import CoursesList from './components/CoursesList';
 import Search from './components/Search';
-import {Container, Spinner} from 'react-bootstrap';
+import { Container, Spinner } from 'react-bootstrap';
+import { coursesReducer } from './reducers/CourseReducer';
 
-const courses_data = [
-  {
-    id: 1,
-    title: 'Denka going to walk',
-    author: 'Danny Van Geyte',
-    hours_video: 50,
-    number_of_lectures: 400,
-    rating: 10,
-    url: 'http://denkatech.pytonanywhere.com'
-  },
-  {
-    id: 2,
-    title: 'Denka going to kakken',
-    author: 'Danny Van Geyte',
-    hours_video: 5,
-    number_of_lectures: 40,
-    rating: 100,
-    url: 'http://denkatech.pytonanywhere.com'
-  },
-  {
-    id: 3,
-    title: 'Denka going to eat',
-    author: 'Danny Van Geyte',
-    hours_video: 150,
-    number_of_lectures: 40,
-    rating: 100,
-    url: 'http://denkatech.pytonanywhere.com'
-  }
-]
 
-/function App() {
+function App() {
 
-  // This is array destructuring
-  // -------| initial state value
-  // -----------------| Function that is returned
-  const [courses, setCourses] = useState([]);
+  // Strapi endpoint path
+  const STRAPI_API_ENDPOINT = "http://localhost:1337/courses";
+
+  const [courses, dispatchCourses] =  
+    useReducer(
+      coursesReducer, 
+      {
+        data: [],           // Will contain data array
+        isLoading: false    // Loading state
+      }
+    );
+
+
   const [searchText, setSearchText] = useState(localStorage.getItem('searchText') || '');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,25 +28,27 @@ const courses_data = [
     setSearchText(event.target.value);
   }
 
-  const filteredCourses = courses.filter(course => {
-    return course.title.includes(searchText);
+  const filteredCourses = courses.data.filter(course => {
+     return course.title.includes(searchText);
   })
 
-  const getCoursesAsync = () =>
-    new Promise(resolve =>
-      setTimeout(() => resolve({ courses: courses_data }),
-        2000
-      )
-    )
-
   useEffect(() => {
-    setIsLoading(true);
-    getCoursesAsync()
-      .then(result => {
-        setCourses(result.courses);
-        setIsLoading(false);
+    dispatchCourses({
+      type: 'FETCH_COURSES_START'
     })
-  }, [])
+    fetch(STRAPI_API_ENDPOINT)
+      // Convert result to json
+      .then(response => response.json())
+      .then(result => {
+        // We call dispatchCourses again to 
+        // set isLoading to false and to get the payload.
+        dispatchCourses({
+          type: 'FETCH_COURSES_SUCCESS',
+          payload: result
+        });
+      })
+      .catch((e) => console.log("Error fetching courses"));
+  }, []); // DidMount
 
   // Function is executed when searchText is updated, hence
   // it is a side-effect.
@@ -79,13 +62,14 @@ const courses_data = [
       <h1>List of denka</h1>
       <hr />
       <Search value={searchText} onSearch={handleSearch} />
+      <p />
       {/* Conditional rendering */}
       {/* Aninmation test v1 */}
-      { isLoading ? (
+      {courses.isLoading ? (
         <Spinner animation="border" variant="info" />
-      ):<CoursesList courses={filteredCourses} />
+      ) : <CoursesList courses={courses} />
       }
-      
+
     </Container>
   );
 }

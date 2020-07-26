@@ -10,7 +10,7 @@ const CoursesList = ({ courses }) => {
             {course.title}
           </span>
           <span> |
-            {course.author}
+            {course.authors.map(author => author.first_name + " " + author.last_name)}
           </span>
           <span> |
             {course.hours_video}

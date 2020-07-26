@@ -1,5 +1,4 @@
 import React from 'react';
-import {InputGroup, FormControl} from 'react-bootstrap';
 
 // ---------------| event handler is passed here as a prop
 const Search = ({ value, onSearch }) => (
